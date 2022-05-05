@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { AppState } from '../../store/app.state';
 import { getErrorMessage, getLoading } from '../../store/shared/shared.selector';
 
@@ -9,17 +9,23 @@ import { getErrorMessage, getLoading } from '../../store/shared/shared.selector'
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.css']
 })
-export class MainComponent implements OnInit {
-  showLoading: Observable<boolean>;
-  errorMessage: Observable<string>;
+export class MainComponent implements OnInit,OnDestroy {
+  showLoading: boolean;
+  errorMessage: string;
+  sharedSubscription: Subscription;
 
   constructor(
     private store: Store<AppState>
   ) { }
 
   ngOnInit(): void {
-    this.showLoading = this.store.select(getLoading);
-    this.errorMessage = this.store.select(getErrorMessage);
+    this.sharedSubscription = this.store.select('shared').subscribe(shared => {
+      this.showLoading = shared.showLoading
+      this.errorMessage = shared.errorMessage});
+  }
+
+  ngOnDestroy() {
+    this.sharedSubscription.unsubscribe();
   }
 
 }
